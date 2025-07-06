@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grow a Garden</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🌱 Grow a Garden</h1>
+  
+  <div id="plantSelect">
+    <h2>Select a Plant</h2>
+    <select id="plantType">
+      <option value="funblossom">Funblossom</option>
+      <option value="darkfruit">Dark Fruit</option>
+      <option value="flamefruit">Flamefruit</option>
+      <option value="dragonblossom">Dragon Blossom</option>
+      <option value="bluefruit">Blue Fruit</option>
+      <option value="bubblegumfruit">Bubblegum Fruit</option>
+      <option value="swordfruit">Sword Fruit</option>
+      <option value="custom">Custom Fruit</option>
+    </select>
+
+    <div id="customOptions" style="display: none;">
+      <input type="text" id="customName" placeholder="Custom name" />
+      <input type="color" id="customColor1" value="#00ff00" />
+      <input type="color" id="customColor2" value="#ff00ff" />
+    </div>
+
+    <button onclick="startGame()">Start</button>
+  </div>
+
+  <div id="game" style="display: none;">
+    <canvas id="plantCanvas" width="200" height="200"></canvas>
+    <p>Growth: <span id="growth">0</span></p>
+    <p>Coins: <span id="coins">0</span></p>
+    <button onclick="grow()">Grow Plant</button>
+
+    <h3>Upgrades</h3>
+    <button onclick="buyFertilizer()" id="fertilizerBtn" disabled>Fertilizer (+2/click) - 50 Coins</button>
+    <button onclick="buyAutoGrow()" id="autoGrowBtn" disabled>Auto Grow - 100 Coins</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
