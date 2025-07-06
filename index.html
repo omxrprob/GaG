@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="="en">
 <head>
   <meta charset="UTF-8" />
   <title>Grow a Garden</title>
@@ -7,38 +7,49 @@
 </head>
 <body>
   <h1>🌱 Grow a Garden</h1>
-  
-  <div id="plantSelect">
-    <h2>Select a Plant</h2>
-    <select id="plantType">
-      <option value="funblossom">Funblossom</option>
-      <option value="darkfruit">Dark Fruit</option>
-      <option value="flamefruit">Flamefruit</option>
-      <option value="dragonblossom">Dragon Blossom</option>
-      <option value="bluefruit">Blue Fruit</option>
-      <option value="bubblegumfruit">Bubblegum Fruit</option>
-      <option value="swordfruit">Sword Fruit</option>
-      <option value="custom">Custom Fruit</option>
-    </select>
 
-    <div id="customOptions" style="display: none;">
-      <input type="text" id="customName" placeholder="Custom name" />
-      <input type="color" id="customColor1" value="#00ff00" />
-      <input type="color" id="customColor2" value="#ff00ff" />
+  <div class="game-container">
+    <!-- FARM SECTION -->
+    <div id="farm" class="panel">
+      <h2>🌾 Farm</h2>
+      <div id="plots" class="plot-container"></div>
+      <button onclick="useWater()">💧 Water Plants</button>
+      <button onclick="useShovel()">🧹 Use Shovel (Remove Plant)</button>
     </div>
 
-    <button onclick="startGame()">Start</button>
+    <!-- SHOP SECTION -->
+    <div id="shop" class="panel">
+      <h2>🛒 Seed Shop (Stock refreshes every 2 mins)</h2>
+      <div id="stockList"></div>
+    </div>
+
+    <!-- SELLER SECTION -->
+    <div id="seller" class="panel">
+      <h2>💰 Seller</h2>
+      <p>Held Item: <span id="heldItem">None</span></p>
+      <button onclick="sellHeld()">1. I want to sell this</button>
+      <button onclick="sellInventory()">2. I want to sell my inventory</button>
+      <button onclick="checkWorth()">3. How much is this worth?</button>
+      <button onclick="cancelSeller()">4. Nevermind</button>
+    </div>
+
+    <!-- STATUS -->
+    <div class="panel" id="statusPanel">
+      <h2>📊 Inventory & Stats</h2>
+      <p>💵 Money: $<span id="money">100</span></p>
+      <p>🎒 Inventory: <span id="inventoryCount">0</span> items</p>
+      <p>⭐ Favorite: <span id="favoriteItem">None</span></p>
+    </div>
   </div>
 
-  <div id="game" style="display: none;">
-    <canvas id="plantCanvas" width="200" height="200"></canvas>
-    <p>Growth: <span id="growth">0</span></p>
-    <p>Coins: <span id="coins">0</span></p>
-    <button onclick="grow()">Grow Plant</button>
-
-    <h3>Upgrades</h3>
-    <button onclick="buyFertilizer()" id="fertilizerBtn" disabled>Fertilizer (+2/click) - 50 Coins</button>
-    <button onclick="buyAutoGrow()" id="autoGrowBtn" disabled>Auto Grow - 100 Coins</button>
+  <!-- CUSTOM FRUIT DIALOG -->
+  <div id="customFruitDialog" class="modal" style="display:none;">
+    <h2>Create Custom Fruit</h2>
+    <input type="text" id="customName" placeholder="Fruit name" /><br>
+    <label>Color 1: <input type="color" id="customColor1" value="#00ff00" /></label><br>
+    <label>Color 2: <input type="color" id="customColor2" value="#ff00ff" /></label><br>
+    <button onclick="confirmCustomFruit()">✅ Confirm</button>
+    <button onclick="closeCustomDialog()">❌ Cancel</button>
   </div>
 
   <script src="script.js"></script>
