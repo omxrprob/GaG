@@ -1,125 +1,164 @@
-let growth = 0;
-let coins = 0;
-let growthPerClick = 1;
-let autoGrowInterval = null;
-let selectedColors = [];
-let canvas, ctx;
+let money = 100;
+let inventory = [];
+let favorite = null;
+let heldItem = null;
+let stock = [];
+let stockTimer = null;
 
-const forbiddenWords = ['fuck', 'shit', 'bitch', 'ass', 'dick', 'piss', 'whore'];
+const forbiddenWords = ['fuck','shit','bitch','ass','dick','piss','whore'];
 
-function startGame() {
-  const type = document.getElementById("plantType").value;
-  const nameInput = document.getElementById("customName").value.toLowerCase();
+const seeds = [
+  { name: "Apple", colors: ["#ff0000", "#990000"], growTime: 10, basePrice: 5, rarity: 1 },
+  { name: "Funblossom", colors: ["#ff00ff", "#00ffff"], growTime: 12, basePrice: 10, rarity: 2 },
+  { name: "Dark Fruit", colors: ["#8b0000", "#000000"], growTime: 20, basePrice: 20, rarity: 3 },
+  { name: "Flamefruit", colors: ["#ff4500", "#ffa500"], growTime: 30, basePrice: 25, rarity: 3 },
+  { name: "Dragon Blossom", colors: ["#228B22", "#ff0000"], growTime: 35, basePrice: 30, rarity: 4 },
+  { name: "Blue Fruit", colors: ["#0000ff", "#3399ff"], growTime: 18, basePrice: 15, rarity: 2 },
+  { name: "Bubblegum Fruit", colors: ["#ff69b4", "#ffc0cb"], growTime: 16, basePrice: 12, rarity: 2 },
+  { name: "Sword Fruit", colors: ["#999999", "#cccccc"], growTime: 25, basePrice: 20, rarity: 3 }
+];
 
-  if (type === "custom") {
-    if (forbiddenWords.some(word => nameInput.includes(word))) {
-      alert("No bad words allowed!");
-      return;
-    }
+let plots = [{ id: 0, seed: seeds[0], plantedAt: Date.now(), watered: false }];
 
-    const color1 = document.getElementById("customColor1").value;
-    const color2 = document.getElementById("customColor2").value;
-    selectedColors = [color1, color2];
-  } else {
-    selectedColors = getPresetColors(type);
-  }
+function renderFarm() {
+  const container = document.getElementById("plots");
+  container.innerHTML = "";
+  plots.forEach((plot, i) => {
+    const div = document.createElement("div");
+    div.className = "plot";
+    div.style.background = `linear-gradient(45deg, ${plot.seed.colors[0]}, ${plot.seed.colors[1]})`;
 
-  document.getElementById("plantSelect").style.display = "none";
-  document.getElementById("game").style.display = "block";
-  canvas = document.getElementById("plantCanvas");
-  ctx = canvas.getContext("2d");
+    let timePassed = (Date.now() - plot.plantedAt) / 1000;
+    let growTime = plot.seed.growTime;
+    if (plot.watered) growTime *= 0.5;
+    const done = timePassed >= growTime;
 
-  drawPlant();
-  updateUI();
-}
+    if (!done) div.classList.add("growing");
 
-function getPresetColors(type) {
-  switch (type) {
-    case 'funblossom': return [randomColor(), randomColor()];
-    case 'darkfruit': return ['#8b0000', '#000000'];
-    case 'flamefruit': return ['#ff4500', '#ffae00'];
-    case 'dragonblossom': return ['#228B22', '#ff0000'];
-    case 'bluefruit': return ['#0066ff', '#00ccff'];
-    case 'bubblegumfruit': return ['#ff69b4', '#ffc0cb'];
-    case 'swordfruit': return ['#c0c0c0', '#808080'];
-    default: return ['#00ff00', '#ff00ff'];
-  }
-}
+    div.innerHTML = `${plot.seed.name}<br>${Math.min(100, Math.floor((timePassed / growTime) * 100))}%`;
 
-function darkenColor(hex, percent) {
-  const num = parseInt(hex.slice(1), 16);
-  const r = Math.floor((num >> 16) * (1 - percent));
-  const g = Math.floor(((num >> 8) & 0x00FF) * (1 - percent));
-  const b = Math.floor((num & 0x0000FF) * (1 - percent));
-  return `rgb(${r},${g},${b})`;
-}
+    div.onclick = () => {
+      if (done) {
+        heldItem = plot.seed;
+        plot.seed = null;
+        container.removeChild(div);
+        plots.splice(i, 1);
+        updateUI();
+        renderFarm();
+      }
+    };
 
-function drawPlant() {
-  ctx.clearRect(0, 0, 200, 200);
-  const darkerColors = selectedColors.map(c => darkenColor(c, growth / 100));
-  const radius = 40 + growth;
-
-  // Draw two overlapping circles for the plant
-  ctx.fillStyle = darkerColors[0];
-  ctx.beginPath();
-  ctx.arc(100, 100, radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = darkerColors[1];
-  ctx.beginPath();
-  ctx.arc(120, 80, radius / 2, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function grow() {
-  growth += growthPerClick;
-  coins += 1;
-  drawPlant();
-  updateUI();
-  checkUpgrades();
+    container.appendChild(div);
+  });
 }
 
 function updateUI() {
-  document.getElementById("growth").textContent = growth;
-  document.getElementById("coins").textContent = coins;
+  document.getElementById("money").textContent = money;
+  document.getElementById("inventoryCount").textContent = inventory.length;
+  document.getElementById("favoriteItem").textContent = favorite || "None";
+  document.getElementById("heldItem").textContent = heldItem ? heldItem.name : "None";
 }
 
-function checkUpgrades() {
-  document.getElementById("fertilizerBtn").disabled = coins < 50 || growthPerClick > 1;
-  document.getElementById("autoGrowBtn").disabled = coins < 100 || autoGrowInterval !== null;
+function useWater() {
+  plots.forEach(p => p.watered = true);
 }
 
-function buyFertilizer() {
-  if (coins >= 50) {
-    coins -= 50;
-    growthPerClick = 2;
-    updateUI();
-    checkUpgrades();
+function useShovel() {
+  plots = plots.filter(p => {
+    if (p.seed && !confirm(`Remove ${p.seed.name}?`)) return true;
+    return false;
+  });
+  renderFarm();
+}
+
+function openCustomDialog(price) {
+  document.getElementById("customFruitDialog").style.display = "block";
+  document.getElementById("customFruitDialog").dataset.price = price;
+}
+
+function closeCustomDialog() {
+  document.getElementById("customFruitDialog").style.display = "none";
+}
+
+function confirmCustomFruit() {
+  const name = document.getElementById("customName").value;
+  if (forbiddenWords.some(w => name.toLowerCase().includes(w))) return alert("No bad words!");
+  const color1 = document.getElementById("customColor1").value;
+  const color2 = document.getElementById("customColor2").value;
+  const price = +document.getElementById("customFruitDialog").dataset.price;
+  if (money < price) return alert("Not enough money!");
+
+  const custom = {
+    name: name || "Custom Fruit",
+    colors: [color1, color2],
+    growTime: 20,
+    basePrice: 15,
+    rarity: 2
+  };
+  money -= price;
+  plots.push({ id: Date.now(), seed: custom, plantedAt: Date.now(), watered: false });
+  closeCustomDialog();
+  updateUI();
+  renderFarm();
+}
+
+function sellHeld() {
+  if (!heldItem) return alert("Nothing held.");
+  money += heldItem.basePrice;
+  heldItem = null;
+  updateUI();
+}
+
+function sellInventory() {
+  const total = inventory.filter(i => i.name !== favorite).reduce((a, b) => a + b.basePrice, 0);
+  inventory = inventory.filter(i => i.name === favorite);
+  money += total;
+  updateUI();
+  alert(`Sold for $${total}`);
+}
+
+function checkWorth() {
+  if (!heldItem) return alert("Nothing held.");
+  alert(`${heldItem.name} is worth $${heldItem.basePrice}`);
+}
+
+function cancelSeller() {
+  alert("Come back when you're ready to sell.");
+}
+
+function restockShop() {
+  const shop = document.getElementById("stockList");
+  shop.innerHTML = "";
+  stock = [];
+
+  for (const s of seeds) {
+    if (Math.random() < 1 / s.rarity) stock.push(s);
   }
-}
 
-function buyAutoGrow() {
-  if (coins >= 100 && autoGrowInterval === null) {
-    coins -= 100;
-    autoGrowInterval = setInterval(() => {
-      growth += 1;
-      coins += 1;
-      drawPlant();
-      updateUI();
-      checkUpgrades();
-    }, 1000);
-    updateUI();
+  if (Math.random() < 0.5) {
+    const price = Math.floor(Math.random() * 31) + 20;
+    const btn = document.createElement("button");
+    btn.textContent = `Custom Fruit ($${price})`;
+    btn.onclick = () => openCustomDialog(price);
+    shop.appendChild(btn);
   }
+
+  stock.forEach(seed => {
+    const btn = document.createElement("button");
+    btn.textContent = `${seed.name} ($${seed.basePrice})`;
+    btn.onclick = () => {
+      if (money >= seed.basePrice) {
+        money -= seed.basePrice;
+        plots.push({ id: Date.now(), seed: seed, plantedAt: Date.now(), watered: false });
+        renderFarm();
+        updateUI();
+      } else alert("Not enough money!");
+    };
+    shop.appendChild(btn);
+  });
 }
 
-function randomColor() {
-  const r = Math.floor(Math.random() * 256);
-  const g = Math.floor(Math.random() * 256);
-  const b = Math.floor(Math.random() * 256);
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
-
-// Show/hide custom inputs
-document.getElementById("plantType").addEventListener("change", (e) => {
-  document.getElementById("customOptions").style.display = e.target.value === "custom" ? "block" : "none";
-});
+updateUI();
+renderFarm();
+restockShop();
+stockTimer = setInterval(restockShop, 120000); // restock every 2 min
