@@ -1,19 +1,64 @@
 body {
   font-family: Arial, sans-serif;
-  background: #e0ffe0;
+  background: #e7ffe7;
   text-align: center;
-  padding: 20px;
+  padding: 10px;
 }
 
-canvas {
-  border: 2px solid #333;
-  border-radius: 50%;
+h1 {
+  margin-bottom: 20px;
+}
+
+.panel {
+  border: 2px solid #aaa;
+  padding: 10px;
   margin: 10px;
+  border-radius: 10px;
+  background: #ffffff;
 }
 
-input[type="color"] {
-  width: 40px;
-  height: 30px;
-  border: none;
+.plot-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.plot {
+  width: 80px;
+  height: 80px;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  border-radius: 10px;
+  background-color: #d6f5d6;
+  position: relative;
+}
+
+.plot.growing::after {
+  content: "🌱";
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 14px;
+}
+
+button {
   margin: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal {
+  position: fixed;
+  top: 20%;
+  left: 35%;
+  background: white;
+  border: 2px solid #444;
+  padding: 20px;
+  z-index: 100;
+  border-radius: 10px;
 }
